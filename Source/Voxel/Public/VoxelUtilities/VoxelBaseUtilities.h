@@ -65,9 +65,7 @@ namespace FVoxelUtilities
 
 	FORCEINLINE uint8 CastToUINT8(int32 Value)
 	{
-#if VOXEL_DEBUG
-		ensureMsgf(0 <= Value && Value < 256, TEXT("Invalid uint8 value: %d"), Value);
-#endif
+		ensureMsgfVoxelSlowNoSideEffects(0 <= Value && Value < 256, TEXT("Invalid uint8 value: %d"), Value);
 		return Value;
 	}
 

@@ -4,7 +4,6 @@
 #include "VoxelUtilities/VoxelMathUtilities.h"
 #include "VoxelMinimal.h"
 #include "VoxelWorld.h"
-#include "VoxelData/VoxelDataLock.h"
 #include "VoxelDebug/VoxelDebugUtilities.h"
 #include "VoxelData/VoxelDataIncludes.h"
 #include "VoxelTools/VoxelDataTools.h"

@@ -26,7 +26,7 @@ struct FVoxelInstancesSection
 	int32 Num = -1;
 
 	// Between 0 and Num - 1
-	TSet<int32> RemovedIndices;
+	TArray<int32> RemovedIndices;
 };
 
 // Need to prefix names with Voxel to avoid collisions with normal HISM

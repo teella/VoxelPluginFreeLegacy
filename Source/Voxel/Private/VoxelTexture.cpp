@@ -278,7 +278,7 @@ void FVoxelTextureUtilities::FixTexture(UTexture* Texture)
 #endif
 	Texture->CompressionSettings = TextureCompressionSettings::TC_VectorDisplacementmap;
 	Texture->UpdateResource();
-	Texture->Modify();
+	Texture->MarkAsGarbage();
 }
 
 void FVoxelTextureUtilities::ClearCache()

@@ -161,12 +161,7 @@ FVoxelProceduralMeshSceneProxy::FVoxelProceduralMeshSceneProxy(UVoxelProceduralM
 	, CollisionTraceFlag(Component->CollisionTraceFlag)
 {
 	VOXEL_FUNCTION_COUNTER();
-
-#if VOXEL_ENGINE_VERSION >= 504
-	// We create render data on-demand, can't be on a background thread
-	bSupportsParallelGDME = false;
-#endif
-
+	
 	// Proxy settings
 	bSupportsDistanceFieldRepresentation = true;
 	DistanceFieldSelfShadowBias = Component->DistanceFieldSelfShadowBias;
@@ -455,7 +450,11 @@ void FVoxelProceduralMeshSceneProxy::GetDynamicMeshElements(const TArray<const F
 				auto* MaterialProxy = Material->GetRenderProxy();
 
 				// Hack to fix translucent rendering when the tool material was changed but the mesh wasn't updated
-				const_cast<FMaterialRelevance&>(MaterialRelevance) |= Material->GetMaterial()->GetRelevance_Concurrent(GetScene().GetFeatureLevel());
+				AsyncTask(ENamedThreads::RHIThread, [this, Material = MoveTemp(Material)]()
+					{
+						const_cast<FMaterialRelevance&>(MaterialRelevance) |= Material->GetMaterial()->GetRelevance_Concurrent(GetScene().GetFeatureLevel());
+					});
+				
 
 				if (CVarShowToolRendering.GetValueOnRenderThread() != 0)
 				{

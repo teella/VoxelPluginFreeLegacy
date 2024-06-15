@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "VoxelDefinitions.h"
 
 #if VOXEL_ENGINE_VERSION >= 503
 #include "RHICommandList.h"

@@ -114,21 +114,21 @@ FVoxelGeneratorParameterType::FVoxelGeneratorParameterType(FProperty& Property)
 		PropertyType = EVoxelGeneratorParameterPropertyType::Object;
 
 		auto* ObjectProperty = CastField<FObjectProperty>(&Property);
-		PropertyClass = FName(ObjectProperty->PropertyClass->GetPathName());
+		PropertyClass = ObjectProperty->PropertyClass->GetFName();
 	}
 	else if (Property.IsA<FSoftObjectProperty>())
 	{
 		PropertyType = EVoxelGeneratorParameterPropertyType::Object;
 
 		auto* ObjectProperty = CastField<FSoftObjectProperty>(&Property);
-		PropertyClass = FName(ObjectProperty->PropertyClass->GetPathName());
+		PropertyClass = ObjectProperty->PropertyClass->GetFName();
 	}
 	else if (Property.IsA<FStructProperty>())
 	{
 		PropertyType = EVoxelGeneratorParameterPropertyType::Struct;
 
 		auto* ObjectProperty = CastField<FStructProperty>(&Property);
-		PropertyClass = FName(ObjectProperty->Struct->GetPathName());
+		PropertyClass = ObjectProperty->Struct->GetFName();
 	}
 	else if (Property.IsA<FArrayProperty>())
 	{

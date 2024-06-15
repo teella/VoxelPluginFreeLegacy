@@ -135,6 +135,12 @@ struct FVoxelRendererSettings : FVoxelRendererSettingsBase
 	const TVoxelSharedPtr<FVoxelToolRenderingManager> ToolRenderingManager; // No tools in asset actors
 	const TVoxelSharedRef<FVoxelDebugManager> DebugManager;
 
+	const bool Channel0;
+	const bool Channel1;
+	const bool Channel2;
+
+	const float MaxDrawDistance;
+
 	FVoxelRendererSettings(
 		const AVoxelWorld* World, 
 		EVoxelPlayType PlayType,
@@ -143,7 +149,9 @@ struct FVoxelRendererSettings : FVoxelRendererSettingsBase
 		const TVoxelSharedRef<IVoxelPool>& Pool,
 		const TVoxelSharedPtr<FVoxelToolRenderingManager>& ToolRenderingManager,
 		const TVoxelSharedRef<FVoxelDebugManager>& DebugManager,
-		bool bUseDataSettings);
+		bool bUseDataSettings,
+		bool InChannel0, bool InChannel1, bool InChannel2,
+		float InMaxDrawDistance);
 };
 
 class VOXEL_API IVoxelRenderer

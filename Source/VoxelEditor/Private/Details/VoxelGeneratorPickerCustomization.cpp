@@ -7,7 +7,6 @@
 #include "VoxelEditorDetailsIncludes.h"
 
 #include "EdGraphSchema_K2.h"
-#include "Widgets/Input/SButton.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 
@@ -129,7 +128,7 @@ public:
 		[
 			SNew(STextBlock)
 			.Text(FText::FromString(Name))
-			.Font(FAppStyle::GetFontStyle(STATIC_FNAME("DetailsView.CategoryFontStyle"))) // PropertyEditorConstants::CategoryFontStyle
+			.Font(FAppStyle::GetFontStyle(PropertyEditorConstants::CategoryFontStyle))
 		];
 	}
 	virtual void GenerateChildContent(IDetailChildrenBuilder& ChildrenBuilder) override
@@ -541,6 +540,34 @@ FEdGraphPinType FVoxelGeneratorPickerCustomization::GetParameterPinType(const FV
 	}
 }
 
+namespace GothGirlVoxelHelper
+{
+	UScriptStruct* FindStructByName(const FString& StructName)
+	{
+		for (TObjectIterator<UScriptStruct> It; It; ++It)
+		{
+			if (It->GetName() == StructName)
+			{
+				return *It;
+			}
+		}
+		return nullptr;
+	}
+
+	UClass* FindClassByName(const FString& StructName)
+	{
+		for (TObjectIterator<UClass> It; It; ++It)
+		{
+			if (It->GetName() == StructName)
+			{
+				return *It;
+			}
+		}
+		return nullptr;
+	}
+};
+
+
 FEdGraphTerminalType FVoxelGeneratorPickerCustomization::GetParameterTerminalPinType(const FVoxelGeneratorParameterTerminalType& ParameterType)
 {
 	const auto Make = [](FName TerminalCategory, FName TerminalSubCategory, TWeakObjectPtr<UObject> TerminalSubCategoryObject)
@@ -569,15 +596,29 @@ FEdGraphTerminalType FVoxelGeneratorPickerCustomization::GetParameterTerminalPin
 	}
 	case EVoxelGeneratorParameterPropertyType::Object:
 	{
-		auto* Class = FindObject<UClass>(nullptr, *ParameterType.PropertyClass.ToString());
-		ensure(Class);
-		return Make(UEdGraphSchema_K2::PC_Object, Class->GetFName(), Class);
+		FString ClassName = ParameterType.PropertyClass.ToString();
+		UClass* Class = GothGirlVoxelHelper::FindClassByName(ClassName);
+		if (!Class)
+		{
+			LOG_VOXEL(Error, TEXT("FVoxelGeneratorPickerCustomization::GetParameterTerminalPinType: Class not found: %s"), *ClassName);
+			ensure(false);
+			return FEdGraphTerminalType();
+		}
+		return Make(UEdGraphSchema_K2::PC_Object, ParameterType.PropertyClass, Class);
 	}
 	case EVoxelGeneratorParameterPropertyType::Struct:
 	{
-		auto* Struct = FindObject<UScriptStruct>(nullptr, *ParameterType.PropertyClass.ToString());
-		ensure(Struct);
-		return Make(UEdGraphSchema_K2::PC_Struct, Struct->GetFName(), Struct);
+		FString StructName = ParameterType.PropertyClass.ToString();
+		UScriptStruct* Struct = GothGirlVoxelHelper::FindStructByName(StructName);
+
+		if (!Struct)
+		{
+			LOG_VOXEL(Error, TEXT("FVoxelGeneratorPickerCustomization::GetParameterTerminalPinType: Struct not found: %s"), *StructName);
+			ensure(false);
+			return FEdGraphTerminalType();
+		}
+
+		return Make(UEdGraphSchema_K2::PC_Struct, ParameterType.PropertyClass, Struct);
 	}
 	}
 }

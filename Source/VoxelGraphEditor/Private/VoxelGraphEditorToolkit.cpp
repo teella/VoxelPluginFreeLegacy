@@ -1099,7 +1099,7 @@ void FVoxelGraphEditorToolkit::DeleteSelectedNodes()
 
 				// Remove this node from the list of all VoxelNodes
 				Generator->AllNodes.Remove(VoxelNode);
-				Generator->Modify();
+				Generator->MarkAsGarbage();
 			}
 			else
 			{

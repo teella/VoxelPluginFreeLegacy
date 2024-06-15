@@ -1,6 +1,6 @@
 // Copyright Voxel Plugin SAS. All Rights Reserved.
 
-#include "VDI_Sphere_Graph.h"
+#include "Examples/VDI_Sphere_Graph.h"
 
 PRAGMA_GENERATED_VOXEL_GRAPH_START
 
@@ -125,7 +125,7 @@ public:
 		
 		const FParams& Params;
 		
-		FVoxelFastNoise _3D_Gradient_Perturb_0_Noise;
+		//FVoxelFastNoise _3D_Gradient_Perturb_0_Noise;
 		
 		///////////////////////////////////////////////////////////////////////
 		//////////////////////////// Init functions ///////////////////////////
@@ -134,8 +134,8 @@ public:
 		void Function0_XYZWithoutCache_Init(const FVoxelGeneratorInit& InitStruct)
 		{
 			// Init of 3D Gradient Perturb
-			_3D_Gradient_Perturb_0_Noise.SetSeed(FVoxelGraphSeed(1337));
-			_3D_Gradient_Perturb_0_Noise.SetInterpolation(EVoxelNoiseInterpolation::Quintic);
+			//_3D_Gradient_Perturb_0_Noise.SetSeed(FVoxelGraphSeed(1337));
+			//_3D_Gradient_Perturb_0_Noise.SetInterpolation(EVoxelNoiseInterpolation::Quintic);
 			
 		}
 		
@@ -226,7 +226,7 @@ public:
 			Variable_7 = BufferX.Variable_4;
 			Variable_8 = BufferXY.Variable_5;
 			Variable_9 = Variable_6;
-			_3D_Gradient_Perturb_0_Noise.GradientPerturb_3D(Variable_7, Variable_8, Variable_9, BufferX.Variable_11, BufferX.Variable_3);
+			//_3D_Gradient_Perturb_0_Noise.GradientPerturb_3D(Variable_7, Variable_8, Variable_9, BufferX.Variable_11, BufferX.Variable_3);
 			
 			// vector - vector.-
 			v_flt Variable_15; // vector - vector.- output 0
@@ -296,7 +296,7 @@ public:
 			Variable_7 = Variable_4;
 			Variable_8 = Variable_5;
 			Variable_9 = Variable_6;
-			_3D_Gradient_Perturb_0_Noise.GradientPerturb_3D(Variable_7, Variable_8, Variable_9, Variable_11, Variable_3);
+			//_3D_Gradient_Perturb_0_Noise.GradientPerturb_3D(Variable_7, Variable_8, Variable_9, Variable_11, Variable_3);
 			
 			// vector - vector.-
 			v_flt Variable_15; // vector - vector.- output 0

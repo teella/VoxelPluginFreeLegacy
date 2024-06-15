@@ -1,6 +1,7 @@
 // Copyright Voxel Plugin SAS. All Rights Reserved.
 
 #include "VoxelEditorDetailsIncludes.h"
+#include "UserInterface/PropertyEditor/PropertyEditorConstants.cpp"
 
 FSimpleDelegate FVoxelEditorUtilities::MakeRefreshDelegate(const IPropertyTypeCustomizationUtils& CustomizationUtils)
 {

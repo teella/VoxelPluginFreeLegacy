@@ -17,11 +17,8 @@ public class Voxel : ModuleRules
 		CppStandard = CppStandardVersion.Cpp17;
 #endif
 
-#if UE_4_24_OR_LATER
-        bUseUnity = true;
-#else
-        bFasterWithoutUnity = false;
-#endif
+        bUseUnity = false;
+
 
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
@@ -30,11 +27,6 @@ public class Voxel : ModuleRules
         PrivateIncludePaths.Add(EngineDirectory + "/Shaders/Shared");
         // For HLSL translator
         PrivateIncludePaths.Add(EngineDirectory + "/Source/Runtime/Engine/Private");
-
-        if (Target.Platform == UnrealTargetPlatform.Linux)
-        {
-	        PrivateIncludePaths.Add(EngineDirectory + "/Source/Runtime/Renderer/Private");
-        }
 
         PublicDependencyModuleNames.AddRange(
             new string[]
@@ -83,6 +75,11 @@ public class Voxel : ModuleRules
             PublicDefinitions.Add("VOXEL_DEBUG=1");
         }
 
+        if (Target.Type == TargetType.Editor)
+        {
+            PrivateDependencyModuleNames.Add("UnrealEd");
+        }
+		
         PublicDefinitions.Add("VOXEL_PLUGIN_NAME=TEXT(\"VoxelFree\")");
     }
 }

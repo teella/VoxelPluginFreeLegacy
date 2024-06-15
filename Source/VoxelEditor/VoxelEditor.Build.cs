@@ -11,10 +11,8 @@ public class VoxelEditor : ModuleRules
         bLegacyPublicIncludePaths = false;
 		CppStandard = CppStandardVersion.Cpp17;
 
-#if UE_4_24_OR_LATER
-        bUseUnity = true;
-#else
-#endif
+        bUseUnity = false;
+
 
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
@@ -35,6 +33,7 @@ public class VoxelEditor : ModuleRules
                 "Voxel",
                 "VoxelGraph",
                 "VoxelEditorDefault",
+                "VoxelExamples",
                 "Engine",
                 "Landscape",
                 "LandscapeEditor",

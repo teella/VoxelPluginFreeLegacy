@@ -116,6 +116,6 @@ void FVoxelSpawnerOutputNameCustomization::HandleComboBoxSelectionChanged(TShare
 	{
 		NameHandle->SetValue(*NewSelection);
 		ComboBoxText->SetText(FText::FromName(*NewSelection));
-		ComboBoxText->SetColorAndOpacity(FSlateColor::UseForeground()); // If it's selected, it's always valid
+		ComboBoxText->SetColorAndOpacity(FSlateColor(FColor::Black)); // If it's selected, it's always valid
 	}
 }

@@ -82,6 +82,9 @@ void FVoxelAsyncPhysicsCooker_Chaos::CreateTriMesh()
 				Particles.AddParticles(NumVertices);
 			}
 
+			// remove degenerate triangles
+			const float Epsilon = 0.01f; // or a suitable small value for your case
+
 			int32 IndexIndex = 0;
 			int32 VertexIndex = 0;
 			for (int32 SectionIndex = 0; SectionIndex < Buffers.Num(); SectionIndex++)
@@ -123,6 +126,16 @@ void FVoxelAsyncPhysicsCooker_Chaos::CreateTriMesh()
 									int32(Data[3 * Index + 1]) + VertexOffset,
 									int32(Data[3 * Index + 0]) + VertexOffset
 							};
+							// remove degenerate triangles
+							const Chaos::FVec3f& p0 = Particles.GetX(Triangle.X);
+							const Chaos::FVec3f& p1 = Particles.GetX(Triangle.Y);
+							const Chaos::FVec3f& p2 = Particles.GetX(Triangle.Z);
+							const Chaos::FVec3f n = (p2 - p0) ^ (p1 - p0);
+							if (n.SizeSquared() < Epsilon)
+							{
+								Triangles.RemoveAt(IndexIndex);
+								continue;
+							}
 
 							FVoxelUtilities::Get(Triangles, IndexIndex++) = Triangle;
 

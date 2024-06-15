@@ -90,7 +90,7 @@ void FVoxelModule::StartupModule()
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/Voxel"), PluginShaderDir);
 
 	}
-		
+	/*
 	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float)
 	{
 		int32 VoxelPluginVersion = 0;
@@ -176,6 +176,7 @@ void FVoxelModule::StartupModule()
 		
 		return false;
 	}));
+	*/
 }
 
 void FVoxelModule::ShutdownModule()

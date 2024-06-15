@@ -81,6 +81,9 @@ void UVoxelProceduralMeshComponent::Init(
 	bCleanCollisionMesh = RendererSettings.bCleanCollisionMeshes;
 	bClearProcMeshBuffersOnFinishUpdate = RendererSettings.bStaticWorld && !RendererSettings.bRenderWorld; // We still need the buffers if we are rendering!
 	DistanceFieldSelfShadowBias = RendererSettings.DistanceFieldSelfShadowBias;
+	SetLightingChannels(RendererSettings.Channel0, RendererSettings.Channel1, RendererSettings.Channel2);
+
+	LDMaxDrawDistance = RendererSettings.MaxDrawDistance;
 }
 
 void UVoxelProceduralMeshComponent::ClearInit()
@@ -89,8 +92,35 @@ void UVoxelProceduralMeshComponent::ClearInit()
 	bInit = false;
 }
 
+#if WITH_EDITOR
+class FStaticLightingSystem
+{
+public:
+	/*
+	static void SetModel(UModelComponent* Component)
+	{
+		static UModel* DummyModel = []()
+			{
+				auto* Memory = FMemory::Malloc(sizeof(UModel), alignof(UModel));
+				FMemory::Memzero(Memory, sizeof(UModel));
+				return reinterpret_cast<UModel*>(Memory);
+			}();
+			Component->Model = DummyModel;
+	}*/
+	static void SetModel(UModelComponent* Component)
+	{
+		static TObjectPtr<UModel> DummyModel = NewObject<UModel>(GetTransientPackage(), FName(TEXT("VoxelPMC_DummyModel")), EObjectFlags::RF_Standalone | EObjectFlags::RF_Transient);
+		Component->Model = DummyModel;
+	}
+};
+#endif
+
 UVoxelProceduralMeshComponent::UVoxelProceduralMeshComponent()
 {
+#if WITH_EDITOR
+	// Create a dummy model for foliage painting to work
+	FStaticLightingSystem::SetModel(this);
+#endif
 	Mobility = EComponentMobility::Movable;
 	
 	CastShadow = true;
@@ -114,6 +144,14 @@ UVoxelProceduralMeshComponent::~UVoxelProceduralMeshComponent()
 	}
 
 	DEC_VOXEL_MEMORY_STAT_BY(STAT_VoxelPhysicsTriangleMeshesMemory, MemoryUsage.TriangleMeshes);
+}
+
+bool UVoxelProceduralMeshComponent::IsBoundsValidForNavigation()
+{ 
+	const float MinExtends = 1.0f;
+	const FVector& Extents = Bounds.BoxExtent * 2.0f;
+	return (Extents.X > MinExtends) && (Extents.Y > MinExtends) && (Extents.Z > MinExtends);
+	//return Bounds.GetSphere().W > 100.0f; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,6 +354,8 @@ void UVoxelProceduralMeshComponent::FinishSectionsUpdates()
 	}
 	if (bNeedToComputeNavigation)
 	{
+		//check and make sure we have a valid bounds
+		bCanEverAffectNavigation = IsBoundsValidForNavigation();
 		UpdateNavigation();
 	}
 
@@ -627,6 +667,7 @@ void UVoxelProceduralMeshComponent::UpdateCollision()
 		if (ensure(PoolPtr.IsValid()))
 		{
 			AsyncCooker = IVoxelAsyncPhysicsCooker::CreateCooker(this);
+
 			if (ensure(AsyncCooker))
 			{
 				PoolPtr->QueueTask(EVoxelTaskType::CollisionCooking, AsyncCooker);

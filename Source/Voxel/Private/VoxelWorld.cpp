@@ -45,7 +45,7 @@
 #include "Components/BillboardComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "HAL/PlatformFileManager.h"
+#include "HAL/PlatformFilemanager.h"
 #include "TimerManager.h"
 #include "Materials/Material.h"
 
@@ -54,6 +54,10 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/MemoryReader.h"
+
+#if WITH_EDITOR
+#include "FileHelpers.h"
+#endif
 
 void AVoxelWorld::FGameThreadTasks::Flush()
 {
@@ -868,7 +872,9 @@ TVoxelSharedRef<IVoxelRenderer> AVoxelWorld::CreateRenderer() const
 		Pool.ToSharedRef(),
 		ToolRenderingManager.ToSharedRef(),
 		DebugManager.ToSharedRef(),
-		false));
+		false,
+		Channel0, Channel1, Channel2,
+		MaxDrawDistance));
 }
 
 TVoxelSharedRef<IVoxelLODManager> AVoxelWorld::CreateLODManager() const
@@ -1387,6 +1393,11 @@ void AVoxelWorld::SaveData()
 	{
 		return;
 	}
+
+	//FNotificationInfo Info2 = FNotificationInfo(VOXEL_LOCTEXT("Meep Meep!"));
+	//Info2.CheckBoxState = ECheckBoxState::Checked;
+	//FSlateNotificationManager::Get().AddNotification(Info2);
+
 	check(IsCreated());
 	if (Data->IsDirty() && GetTransientPackage() != nullptr)
 	{
@@ -1428,6 +1439,11 @@ void AVoxelWorld::SaveData()
 			SaveObject->CopyDepthFromSave();
 			SaveObject->MarkPackageDirty();
 
+#if WITH_EDITOR
+			TArray<UPackage*> Packages;
+			Packages.Add(SaveObject->GetPackage());
+			UEditorLoadingAndSavingUtils::SavePackages(Packages, true);
+#endif
 			FNotificationInfo Info = FNotificationInfo(VOXEL_LOCTEXT("Voxel world saved!"));
 			Info.CheckBoxState = ECheckBoxState::Checked;
 			FSlateNotificationManager::Get().AddNotification(Info);
@@ -1575,6 +1591,14 @@ FString AVoxelWorld::GetDefaultFilePath() const
 }
 
 void AVoxelWorld::OnPreSaveWorld(UWorld* World, const FObjectPreSaveContext& SaveContext)
+{
+	if (IsCreated() && PlayType == EVoxelPlayType::Preview)
+	{
+		SaveData();
+	}
+}
+
+void AVoxelWorld::OnPreSaveWorld(UWorld* World)
 {
 	if (IsCreated() && PlayType == EVoxelPlayType::Preview)
 	{

@@ -1,6 +1,6 @@
 // Copyright Voxel Plugin SAS. All Rights Reserved.
 
-#include "VDI_Capsule_Graph.h"
+#include "Examples/VDI_Capsule_Graph.h"
 
 PRAGMA_GENERATED_VOXEL_GRAPH_START
 

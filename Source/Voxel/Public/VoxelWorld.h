@@ -204,11 +204,11 @@ public:
 
 	// WorldSizeInVoxel = RENDER_CHUNK_SIZE * 2^DataOctreeDepth.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Voxel - World Size", meta = (Recreate, ClampMin = 1, ClampMax = 26, UIMin = 1, UIMax = 26))
-	int32 RenderOctreeDepth = 10;
+	int32 RenderOctreeDepth = 5;
 
 	// Size of an edge of the world
 	UPROPERTY(EditAnywhere, Category = "Voxel - World Size", meta = (Recreate, ClampMin = 1, DisplayName = "World Size (in voxel)"))
-	uint32 WorldSizeInVoxel = FVoxelUtilities::GetSizeFromDepth<RENDER_CHUNK_SIZE>(10);
+	uint32 WorldSizeInVoxel = FVoxelUtilities::GetSizeFromDepth<RENDER_CHUNK_SIZE>(5);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - World Size", meta = (Recreate, InlineEditConditionToggle))
 	bool bUseCustomWorldBounds = false;
@@ -328,6 +328,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - Rendering", meta = (RecreateRender))
 	EVoxelRenderType RenderType = EVoxelRenderType::MarchingCubes;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - Rendering|LightChannel", meta = (RecreateRender))
+	bool Channel0{ true };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - Rendering|LightChannel", meta = (RecreateRender))
+	bool Channel1{ false };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - Rendering|LightChannel", meta = (RecreateRender))
+	bool Channel2{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel - Rendering", meta = (RecreateRender))
+	float MaxDrawDistance{ 90000.0f };
 
 	// For marching cubes only
 	// If 0, will do nothing
@@ -832,6 +842,7 @@ public:
 	
 	//~ Begin IVoxelEditorDelegatesInterface Interface
 	virtual void OnPreSaveWorld(UWorld* World, const FObjectPreSaveContext& SaveContext) override;
+	virtual void OnPreSaveWorld(UWorld* World) override;
 	virtual void OnPreBeginPIE(bool bIsSimulating) override;
 	virtual void OnEndPIE(bool bIsSimulating) override;
 	virtual void OnPrepareToCleanseEditorObject(UObject* Object) override;

@@ -15,10 +15,8 @@ public class VoxelGraph : ModuleRules
 		CppStandard = CppStandardVersion.Cpp17;
 #endif
 
-#if UE_4_24_OR_LATER
-        bUseUnity = true;
-#else
-#endif
+        bUseUnity = false;
+
 
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));

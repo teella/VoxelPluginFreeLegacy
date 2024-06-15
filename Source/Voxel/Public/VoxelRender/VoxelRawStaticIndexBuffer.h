@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RHI.h"
 #include "RenderResource.h"
 #include "RawIndexBuffer.h"
 #include "VoxelMinimal.h"

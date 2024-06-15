@@ -7,7 +7,7 @@
 #include "VDI_Sphere_Graph.generated.h"
 
 UCLASS(Blueprintable)
-class UVDI_Sphere_Graph : public UVoxelGraphGeneratorHelper
+class VOXELGRAPH_API UVDI_Sphere_Graph : public UVoxelGraphGeneratorHelper
 {
 	GENERATED_BODY()
 	

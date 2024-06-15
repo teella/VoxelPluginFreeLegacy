@@ -2,7 +2,7 @@
 
 #include "VoxelNodes/VoxelGeneratorSamplerNodes.h"
 #include "CppTranslation/VoxelVariables.h"
-#include "VoxelGenerators/VoxelFlatGenerator.h"
+#include "VoxelGenerators/GothGirlGeneratorSimpleFlat.h"
 #include "VoxelGraphGenerator.h"
 #include "VoxelGenerators/VoxelGeneratorInstance.inl"
 #include "NodeFunctions/VoxelNodeFunctions.h"
@@ -14,7 +14,7 @@
 
 UVoxelNode_SingleGeneratorSamplerBase::UVoxelNode_SingleGeneratorSamplerBase()
 {
-	Generator = UVoxelFlatGenerator::StaticClass();
+	Generator = UGothGirlGeneratorSimpleFlat::StaticClass();
 
 	SetInputs(
 		{ "X", EC::Float, "X" },

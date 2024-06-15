@@ -95,12 +95,18 @@ FVoxelRendererSettings::FVoxelRendererSettings(
 	const TVoxelSharedRef<IVoxelPool>& Pool,
 	const TVoxelSharedPtr<FVoxelToolRenderingManager>& ToolRenderingManager,
 	const TVoxelSharedRef<FVoxelDebugManager>& DebugManager,
-	bool bUseDataSettings)
+	bool bUseDataSettings,
+	bool InChannel0, bool InChannel1, bool InChannel2,
+	float InMaxDrawDistance)
 	: FVoxelRendererSettingsBase(World, PlayType, RootComponent, bUseDataSettings ? &Data.Get() : nullptr)
 	, Data(Data)
 	, Pool(Pool)
 	, ToolRenderingManager(ToolRenderingManager)
 	, DebugManager(DebugManager)
+	, Channel0(InChannel0)
+	, Channel1(InChannel1)
+	, Channel2(InChannel2)
+	, MaxDrawDistance(InMaxDrawDistance)
 {
 
 }

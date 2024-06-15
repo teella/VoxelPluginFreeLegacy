@@ -86,6 +86,10 @@
 #include "VoxelScopedTransaction.h"
 #include "VoxelWorldEditorControls.h"
 
+#include "GothGirlVoxelWholeActor.h"
+#include "GothGirlVoxelSplineActor.h"
+#include "GothGirlPCGSplineActor.h"
+
 const FVector2D Icon14x14(14.0f, 14.0f);
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
@@ -154,6 +158,10 @@ static void BindEditorDelegates(IVoxelEditorDelegatesInterface* Interface, UObje
 {
 	check(Interface && Object);
 	
+	if (!FEditorDelegates::PreSaveExternalActors.IsBoundToObject(Object))
+	{
+		FEditorDelegates::PreSaveExternalActors.AddWeakLambda(Object, [=](UWorld* World) { Interface->OnPreSaveWorld(World); });
+	}
 	if (!FEditorDelegates::PreSaveWorldWithContext.IsBoundToObject(Object))
 	{
 		FEditorDelegates::PreSaveWorldWithContext.AddWeakLambda(Object, [=](UWorld* World, const FObjectPreSaveContext& SaveContext) { Interface->OnPreSaveWorld(World, SaveContext); });
@@ -390,6 +398,14 @@ public:
 			FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet.Get());
 			StyleSet.Reset();
 		}
+
+		FEditorDelegates::PreSaveExternalActors.RemoveAll(this);
+		FEditorDelegates::PreSaveWorldWithContext.RemoveAll(this);
+		FEditorDelegates::PreBeginPIE.RemoveAll(this);
+		FEditorDelegates::EndPIE.RemoveAll(this);
+		FEditorDelegates::OnApplyObjectToActor.RemoveAll(this);
+		FEditorSupportDelegates::PrepareToCleanseEditorObject.RemoveAll(this);
+		FCoreDelegates::OnPreExit.RemoveAll(this);
 	}
 
 	virtual bool SupportsDynamicReloading() override
@@ -408,13 +424,18 @@ private:
 		IPlacementModeModule& PlacementModeModule = IPlacementModeModule::Get();
 		PlacementModeModule.RegisterPlacementCategory(PlacementCategoryInfo);
 
+		RegisterPlacementModeExtension<AGothGirlVoxelSplineActor>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlSpline	>());
+		RegisterPlacementModeExtension<AGothGirlVoxelWholeActor	>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlWhole		>());
+		RegisterPlacementModeExtension<AGothGirlPCGSplineActor	>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlPCG		>());
+		RegisterPlacementModeExtension<AGothGirlPCGExcluder		>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlPCGExclude>());
+
 		RegisterPlacementModeExtension<AVoxelWorld          >(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelWorld          >());
 		RegisterPlacementModeExtension<AVoxelDisableEditsBox>(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelDisableEditsBox>());
 		RegisterPlacementModeExtension<AVoxelAssetActor     >(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelAssetActor     >());
-		RegisterPlacementModeExtension<AVoxelMeshImporter   >(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelMeshImporter   >());
+		//RegisterPlacementModeExtension<AVoxelMeshImporter   >(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelMeshImporter   >());
 
 		RegisterPlacementModeExtension<AVoxelLODVolume>(PlacementModeModule);
-		RegisterPlacementModeExtension<AVoxelLandscapeImporter>(PlacementModeModule);
+		//RegisterPlacementModeExtension<AVoxelLandscapeImporter>(PlacementModeModule);
 
 		PlacementModeModule.RegenerateItemsForCategory(FBuiltInPlacementCategories::AllClasses());
 	}

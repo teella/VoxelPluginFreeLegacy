@@ -27,6 +27,7 @@ public:
 	}
 	
 	virtual void OnPreSaveWorld(UWorld* World, const FObjectPreSaveContext& SaveContext) {}
+	virtual void OnPreSaveWorld(UWorld* World) {}
 	virtual void OnPreBeginPIE(bool bIsSimulating) {}
 	virtual void OnEndPIE(bool bIsSimulating) {}
 	virtual void OnPrepareToCleanseEditorObject(UObject* Object) {}

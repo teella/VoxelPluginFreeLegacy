@@ -337,7 +337,9 @@ void AVoxelAssetActor::CreatePreview()
 		StaticPool.ToSharedRef(),
 		nullptr,
 		DebugManager.ToSharedRef(),
-		true));
+		true,
+		true, false, false,
+		0.0f));
 	
 	LODManager = FVoxelFixedResolutionLODManager::Create(
 		FVoxelLODSettings(PreviewWorld,

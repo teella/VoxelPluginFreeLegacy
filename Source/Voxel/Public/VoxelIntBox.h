@@ -17,7 +17,7 @@ enum class EInverseTransform : uint8
 /**
  * A Box with int32 coordinates
  */
-USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelIntBoxLibrary:MakeIntBox", HasNativeBreak="/Script/Voxel.VoxelIntBoxLibrary:BreakIntBox"))
+USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelIntBoxLibrary.MakeIntBox", HasNativeBreak="/Script/Voxel.VoxelIntBoxLibrary.BreakIntBox"))
 struct VOXEL_API FVoxelIntBox
 {
 	GENERATED_BODY()
@@ -673,7 +673,7 @@ FORCEINLINE FArchive& operator<<(FArchive& Ar, FVoxelIntBox& Box)
 }
 
 // Voxel Int Box with a IsValid flag
-USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelIntBoxLibrary:MakeIntBoxWithValidity", HasNativeBreak="/Script/Voxel.VoxelIntBoxLibrary:BreakIntBoxWithValidity"))
+USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelIntBoxLibrary.MakeIntBoxWithValidity", HasNativeBreak="/Script/Voxel.VoxelIntBoxLibrary.BreakIntBoxWithValidity"))
 struct FVoxelIntBoxWithValidity
 {
 	GENERATED_BODY()

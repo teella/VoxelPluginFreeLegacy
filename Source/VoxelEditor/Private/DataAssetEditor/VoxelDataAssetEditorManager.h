@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/GCObject.h"
-#include "UObject/ObjectPtr.h"
 
 class AVoxelWorld;
 class UVoxelDataAsset;

@@ -112,7 +112,7 @@ uint32 GetTypeHash(const TVoxelGeneratorPicker<TGenerator>& Key)
 	return HashCombine(GetTypeHash(Key.GetObject()), GetTypeHash(Key.Parameters.Num()));
 }
 
-USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelGeneratorTools:MakeGeneratorPickerFromObject"))
+USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelGeneratorTools.MakeGeneratorPickerFromObject"))
 struct VOXEL_API FVoxelGeneratorPicker
 #if CPP
 	: TVoxelGeneratorPicker<UVoxelGenerator>
@@ -145,7 +145,7 @@ struct VOXEL_API FVoxelGeneratorPicker
 #endif
 };
 
-USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelGeneratorTools:MakeTransformableGeneratorPickerFromObject"))
+USTRUCT(BlueprintType, meta=(HasNativeMake="/Script/Voxel.VoxelGeneratorTools.MakeTransformableGeneratorPickerFromObject"))
 struct FVoxelTransformableGeneratorPicker
 #if CPP
 	: TVoxelGeneratorPicker<UVoxelTransformableGenerator>
