@@ -148,10 +148,9 @@ UVoxelProceduralMeshComponent::~UVoxelProceduralMeshComponent()
 
 bool UVoxelProceduralMeshComponent::IsBoundsValidForNavigation()
 { 
-	const float MinExtends = 1.0f;
+	const float MinExtends = 5.0f;
 	const FVector& Extents = Bounds.BoxExtent * 2.0f;
 	return (Extents.X > MinExtends) && (Extents.Y > MinExtends) && (Extents.Z > MinExtends);
-	//return Bounds.GetSphere().W > 100.0f; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////

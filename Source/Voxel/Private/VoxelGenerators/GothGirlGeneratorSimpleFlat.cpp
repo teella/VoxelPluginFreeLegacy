@@ -39,7 +39,6 @@ v_flt FGothGirlGeneratorSimpleFlatInstance::GetValueImpl(v_flt X, v_flt Y, v_flt
 		Value = Z - Height;
 
 		// The voxel value is clamped between -1 and 1. That can result in a bad gradient/normal. To solve that we divide it
-		//Value /= 5;
 		Value *= 0.2f;
 	}
 
@@ -76,37 +75,109 @@ FVoxelMaterial FGothGirlGeneratorSimpleFlatInstance::GetMaterialImpl(v_flt X, v_
 	// Multi index
 	Builder.SetMaterialConfig(EVoxelMaterialConfig::MultiIndex);
 	Builder.AddMultiIndex(0, 0.5f);
-	Builder.AddMultiIndex(1, 0.5f);
+	//Builder.AddMultiIndex(1, 0.1f);
 	
 	return Builder.Build();
 }
 
+TVoxelRange<v_flt> MaxRange(const TVoxelRange<v_flt>& Range1, const TVoxelRange<v_flt>& Range2)
+{
+	return TVoxelRange<v_flt>(
+		FMath::Max(Range1.Min, Range2.Min),
+		FMath::Max(Range1.Max, Range2.Max));
+}
+
+TVoxelRange<v_flt> MinRange(const TVoxelRange<v_flt>& Range1, const TVoxelRange<v_flt>& Range2)
+{
+	return TVoxelRange<v_flt>(
+		FMath::Min(Range1.Min, Range2.Min),
+		FMath::Min(Range1.Max, Range2.Max));
+}
+
+template<bool bSubtractItems>
+TVoxelRange<v_flt> CombineRanges(const TVoxelRange<v_flt>& ValueRange, const TVoxelRange<v_flt>& DataItemRange, EVoxelDataItemCombineMode CombineMode)
+{
+	if (CombineMode == EVoxelDataItemCombineMode::Max)
+	{
+		if (bSubtractItems)
+		{
+			// For subtraction, we want the max of the two ranges
+			return MaxRange(ValueRange, DataItemRange);
+		}
+		else
+		{
+			// For addition, we want the min of the two ranges
+			return MinRange(ValueRange, DataItemRange);
+		}
+	}
+	else if (CombineMode == EVoxelDataItemCombineMode::Min)
+	{
+		if (bSubtractItems)
+		{
+			// For subtraction, we want the min of the two ranges
+			return MinRange(ValueRange, DataItemRange);
+		}
+		else
+		{
+			// For addition, we want the max of the two ranges
+			return MaxRange(ValueRange, DataItemRange);
+		}
+	}
+
+	// Default case, should not reach here
+	return TVoxelRange<v_flt>::Infinite();
+}
+
 TVoxelRange<v_flt> FGothGirlGeneratorSimpleFlatInstance::GetValueRangeImpl(const FVoxelIntBox& Bounds, int32 LOD, const FVoxelItemStack& Items) const
 {
-	// Return the values that GetValueImpl can return in Bounds
-	// Used to skip chunks where the value does not change
-	// Be careful, if wrong your world will have holes!
-	// By default return infinite range to be safe
-	//if (NoiseHeight <= 0.0f)
-	//{
-		return TVoxelRange<v_flt>::Infinite();
-	//}
-	/*
-	* This is good for optimization, makes the voxel system tight around the generated area.
-	* but you can't dig under it
-	// Example for the GetValueImpl above
+	// Define the buffer value to extend the bounds
+	const v_flt BufferValue = 100.0f;  // Adjust this value as needed
+
+	// Extend the bounds by adding the buffer value
+	const FVoxelIntBox ExtendedBounds(
+		Bounds.Min - FIntVector(BufferValue),
+		Bounds.Max + FIntVector(BufferValue)
+	);
 
 	// Noise is between -1 and 1
 	const TVoxelRange<v_flt> Height = TVoxelRange<v_flt>(-1, 1) * NoiseHeight;
 
 	// Z can go from min to max
-	TVoxelRange<v_flt> Value = TVoxelRange<v_flt>(Bounds.Min.Z, Bounds.Max.Z) - Height;
+	TVoxelRange<v_flt> Value = TVoxelRange<v_flt>(ExtendedBounds.Min.Z, ExtendedBounds.Max.Z) - Height;
 
-	//Value /= 5;
+	// Adjust for the scaling factor used in GetValueImpl
 	Value *= 0.2f;
 
+	// Define the X, Y, and Z ranges based on the extended bounds
+	TVoxelRange<v_flt> XRange(ExtendedBounds.Min.X, ExtendedBounds.Max.X);
+	TVoxelRange<v_flt> YRange(ExtendedBounds.Min.Y, ExtendedBounds.Max.Y);
+	TVoxelRange<v_flt> ZRange(ExtendedBounds.Min.Z, ExtendedBounds.Max.Z);
+
+	// Now adjust the range for each DataItemConfig
+	if (Items.ItemHolder.GetDataItems().Num() > 0)
+	{
+		for (const auto& DataItemConfig : DataItemConfigs)
+		{
+			TVoxelRange<v_flt> SmoothnessRange = TVoxelRange<v_flt>(DataItemConfig.Smoothness);
+			TVoxelRange<v_flt> DataItemRange;
+
+			DataItemRange = FVoxelUtilities::CombineDataItemDistanceRange(
+				Value,
+				Items.ItemHolder,
+				XRange,
+				YRange,
+				ZRange,
+				SmoothnessRange,
+				DataItemConfig.Mask,
+				DataItemConfig.bSubtractItems ? EVoxelDataItemCombineMode::Max : EVoxelDataItemCombineMode::Min);
+
+			// Combine the ranges using our custom CombineRanges function
+			Value = DataItemConfig.bSubtractItems ? CombineRanges<true>(Value, DataItemRange, EVoxelDataItemCombineMode::Max) :
+				CombineRanges<false>(Value, DataItemRange, EVoxelDataItemCombineMode::Min);
+		}
+	}
+
 	return Value;
-	*/
 }
 
 FVector FGothGirlGeneratorSimpleFlatInstance::GetUpVector(v_flt X, v_flt Y, v_flt Z) const
