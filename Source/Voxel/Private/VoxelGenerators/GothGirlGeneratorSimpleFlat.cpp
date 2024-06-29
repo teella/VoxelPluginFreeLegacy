@@ -130,6 +130,10 @@ TVoxelRange<v_flt> CombineRanges(const TVoxelRange<v_flt>& ValueRange, const TVo
 
 TVoxelRange<v_flt> FGothGirlGeneratorSimpleFlatInstance::GetValueRangeImpl(const FVoxelIntBox& Bounds, int32 LOD, const FVoxelItemStack& Items) const
 {
+
+#if WITH_EDITOR
+	return TVoxelRange<v_flt>::Infinite();
+#else
 	// Define the buffer value to extend the bounds
 	const v_flt BufferValue = 100.0f;  // Adjust this value as needed
 
@@ -178,6 +182,7 @@ TVoxelRange<v_flt> FGothGirlGeneratorSimpleFlatInstance::GetValueRangeImpl(const
 	}
 
 	return Value;
+#endif
 }
 
 FVector FGothGirlGeneratorSimpleFlatInstance::GetUpVector(v_flt X, v_flt Y, v_flt Z) const

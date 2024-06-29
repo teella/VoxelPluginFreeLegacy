@@ -110,7 +110,7 @@ public:
 
 	// In cm. Will set LODToSet around the invoker on this distance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Invoker|LOD", meta = (DisplayName = "LOD Range", EditCondition = bUseForLOD, ClampMin = 0))
-	float LODRange = 1000;
+	float LODRange = 3000;
 
 	// Will enable high res collisions around the invoker
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Invoker|Collisions")
@@ -118,7 +118,7 @@ public:
 	
 	// In cm. Will enable high res collisions on chunks under this distance from this invoker
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Invoker|Collisions", meta = (EditCondition = bUseForCollisions, ClampMin = 0))
-	float CollisionsRange = 1000;
+	float CollisionsRange = 3000;
 
 	// Will enable high res navmesh around the invoker
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Invoker|Navmesh")
@@ -126,7 +126,7 @@ public:
 	
 	// In cm. Will enable high res navmesh on chunks under this distance from this invoker
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voxel Invoker|Navmesh", meta = (EditCondition = bUseForNavmesh, ClampMin = 0))
-	float NavmeshRange = 1000;
+	float NavmeshRange = 3000;
 
 public:
 	// VoxelSimpleInvokerComponent's GetInvokerVoxelPosition and GetInvokerSettings functions are calling GetInvokerGlobalPosition to find the global position of the invoker

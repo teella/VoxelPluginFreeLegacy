@@ -89,6 +89,7 @@
 #include "GothGirlVoxelWholeActor.h"
 #include "GothGirlVoxelSplineActor.h"
 #include "GothGirlPCGSplineActor.h"
+#include "GothGirlSplineRoad.h"
 
 const FVector2D Icon14x14(14.0f, 14.0f);
 const FVector2D Icon16x16(16.0f, 16.0f);
@@ -428,6 +429,7 @@ private:
 		RegisterPlacementModeExtension<AGothGirlVoxelWholeActor	>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlWhole		>());
 		RegisterPlacementModeExtension<AGothGirlPCGSplineActor	>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlPCG		>());
 		RegisterPlacementModeExtension<AGothGirlPCGExcluder		>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlPCGExclude>());
+		RegisterPlacementModeExtension<AGothGirlSplineRoad		>(PlacementModeModule, GetMutableDefault<UActorFactoryGothGirlSplineRoad>());
 
 		RegisterPlacementModeExtension<AVoxelWorld          >(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelWorld          >());
 		RegisterPlacementModeExtension<AVoxelDisableEditsBox>(PlacementModeModule, GetMutableDefault<UActorFactoryVoxelDisableEditsBox>());

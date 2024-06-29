@@ -1379,12 +1379,14 @@ void AVoxelWorld::CreateInEditor(const FVoxelWorldCreateInfo& Info)
 
 	BindEditorDelegates(this);
 
-	if (IsCreated())
-	{
-		DestroyWorldInternal();
-	}
+	LOG_VOXEL(Log, TEXT("AVoxelWorld::CreateInEditor"));
+	//if (IsCreated())
+	//{
+	//	DestroyWorldInternal();
+	//}
 	PlayType = EVoxelPlayType::Preview;
-	CreateWorldInternal(Info);
+	if (!IsCreated()) //added
+		CreateWorldInternal(Info);
 }
 
 void AVoxelWorld::SaveData()
@@ -1439,11 +1441,10 @@ void AVoxelWorld::SaveData()
 			SaveObject->CopyDepthFromSave();
 			SaveObject->MarkPackageDirty();
 
-#if WITH_EDITOR
 			TArray<UPackage*> Packages;
 			Packages.Add(SaveObject->GetPackage());
 			UEditorLoadingAndSavingUtils::SavePackages(Packages, true);
-#endif
+
 			FNotificationInfo Info = FNotificationInfo(VOXEL_LOCTEXT("Voxel world saved!"));
 			Info.CheckBoxState = ECheckBoxState::Checked;
 			FSlateNotificationManager::Get().AddNotification(Info);
@@ -1608,15 +1609,16 @@ void AVoxelWorld::OnPreSaveWorld(UWorld* World)
 
 void AVoxelWorld::OnPreBeginPIE(bool bIsSimulating)
 {
-	if (PlayType == EVoxelPlayType::Preview && IsCreated())
-	{
-		DestroyWorldInternal();
-	}
+	LOG_VOXEL(Log, TEXT("AVoxelWorld::OnPreBeginPIE"));
+	//if (PlayType == EVoxelPlayType::Preview && IsCreated())
+	//{
+	//	DestroyWorldInternal();
+	//}
 }
 
 void AVoxelWorld::OnEndPIE(bool bIsSimulating)
 {
-	if (PlayType == EVoxelPlayType::Preview && ensure(!IsCreated()) && bIsToggled)
+	if (PlayType == EVoxelPlayType::Preview && !IsCreated() && bIsToggled)
 	{
 		CreateInEditor();
 	}

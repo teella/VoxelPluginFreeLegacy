@@ -11,6 +11,7 @@
 #include "GothGirlVoxelWholeActor.h"
 #include "GothGirlVoxelSplineActor.h"
 #include "GothGirlPCGSplineActor.h"
+#include "GothGirlSplineRoad.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -40,7 +41,7 @@ void UActorFactoryVoxelWorld::PostSpawnActor(UObject* Asset, AActor* NewActor)
 UActorFactoryGothGirlWhole::UActorFactoryGothGirlWhole()
 {
 	DisplayName = VOXEL_LOCTEXT("GothGirl Voxel Whole");
-	NewActorClass = AVoxelWorld::StaticClass();
+	NewActorClass = AGothGirlVoxelWholeActor::StaticClass();
 }
 
 void UActorFactoryGothGirlWhole::PostSpawnActor(UObject* Asset, AActor* NewActor)
@@ -53,7 +54,7 @@ void UActorFactoryGothGirlWhole::PostSpawnActor(UObject* Asset, AActor* NewActor
 UActorFactoryGothGirlSpline::UActorFactoryGothGirlSpline()
 {
 	DisplayName = VOXEL_LOCTEXT("GothGirl Voxel Spline");
-	NewActorClass = AVoxelWorld::StaticClass();
+	NewActorClass = AGothGirlVoxelSplineActor::StaticClass();
 }
 
 void UActorFactoryGothGirlSpline::PostSpawnActor(UObject* Asset, AActor* NewActor)
@@ -66,7 +67,7 @@ void UActorFactoryGothGirlSpline::PostSpawnActor(UObject* Asset, AActor* NewActo
 UActorFactoryGothGirlPCG::UActorFactoryGothGirlPCG()
 {
 	DisplayName = VOXEL_LOCTEXT("GothGirl PCG Spline");
-	NewActorClass = AVoxelWorld::StaticClass();
+	NewActorClass = AGothGirlPCGSplineActor::StaticClass();
 }
 
 void UActorFactoryGothGirlPCG::PostSpawnActor(UObject* Asset, AActor* NewActor)
@@ -79,7 +80,7 @@ void UActorFactoryGothGirlPCG::PostSpawnActor(UObject* Asset, AActor* NewActor)
 UActorFactoryGothGirlPCGExclude::UActorFactoryGothGirlPCGExclude()
 {
 	DisplayName = VOXEL_LOCTEXT("GothGirl PCG_EXCLUDE");
-	NewActorClass = AVoxelWorld::StaticClass();
+	NewActorClass = AGothGirlPCGExcluder::StaticClass();
 }
 
 void UActorFactoryGothGirlPCGExclude::PostSpawnActor(UObject* Asset, AActor* NewActor)
@@ -87,3 +88,17 @@ void UActorFactoryGothGirlPCGExclude::PostSpawnActor(UObject* Asset, AActor* New
 	Super::PostSpawnActor(Asset, NewActor);
 
 }
+
+UActorFactoryGothGirlSplineRoad::UActorFactoryGothGirlSplineRoad()
+{
+	DisplayName = VOXEL_LOCTEXT("GothGirl Spline Road !Meep Meep!");
+	NewActorClass = AGothGirlSplineRoad::StaticClass();
+}
+
+void UActorFactoryGothGirlSplineRoad::PostSpawnActor(UObject* Asset, AActor* NewActor)
+{
+	Super::PostSpawnActor(Asset, NewActor);
+
+	//AGothGirlVoxelSplineActor* VoxelWorld = CastChecked<AGothGirlVoxelSplineActor>(NewActor);
+}
+

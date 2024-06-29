@@ -72,3 +72,16 @@ public:
 	void PostSpawnActor(UObject* Asset, AActor* NewActor) override;
 	//~ End UActorFactory Interface
 };
+
+UCLASS()
+class VOXELEDITORDEFAULT_API UActorFactoryGothGirlSplineRoad : public UActorFactory
+{
+	GENERATED_BODY()
+
+public:
+	UActorFactoryGothGirlSplineRoad();
+
+	//~ Begin UActorFactory Interface
+	void PostSpawnActor(UObject* Asset, AActor* NewActor) override;
+	//~ End UActorFactory Interface
+};
