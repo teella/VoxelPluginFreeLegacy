@@ -11,6 +11,7 @@
 class AVoxelWorld;
 class UMaterialInterface;
 class UStaticMesh;
+class USplineMeshComponent;
 
 USTRUCT(BlueprintType, Blueprintable)
 struct FGothGirlRoadInfo
@@ -30,6 +31,69 @@ struct FGothGirlRoadInfo
 	FVector EndTangent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
 	FRotator EndRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FVector RawStart;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FVector RawStartTangent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FRotator RawStartRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FVector RawEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FVector RawEndTangent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	FRotator RawEndRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GothGirl|SplineRoad")
+	TObjectPtr<USplineMeshComponent> MeshComponent = nullptr;
+
+	FGothGirlRoadInfo()
+	{
+		Start = FVector::ZeroVector;
+		StartTangent = FVector::ZeroVector;
+		StartRotation = FRotator::ZeroRotator;
+
+		End = FVector::ZeroVector;
+		EndTangent = FVector::ZeroVector;
+		EndRotation = FRotator::ZeroRotator;
+
+		RawStart = FVector::ZeroVector;
+		RawStartTangent = FVector::ZeroVector;
+		RawStartRotation = FRotator::ZeroRotator;
+
+		RawEnd = FVector::ZeroVector;
+		RawEndTangent = FVector::ZeroVector;
+		RawEndRotation = FRotator::ZeroRotator;
+
+		MeshComponent = nullptr;
+	}
+
+	FGothGirlRoadInfo(FVector InStart, FVector InStartTangent, FRotator InStartRotation,
+					  FVector InEnd, FVector InEndTangent, FRotator InEndRotation,
+					  FVector InRawStart, FVector InRawStartTangent, FRotator InRawStartRotation,
+					  FVector InRawEnd, FVector InRawEndTangent, FRotator InRawEndRotation,
+					  USplineMeshComponent * InMeshComponent)
+	{
+		Start = InStart;
+		StartTangent = InStartTangent;
+		StartRotation = InStartRotation;
+
+		End = InEnd;
+		EndTangent = InEndTangent;
+		EndRotation = InEndRotation;
+
+		RawStart = InRawStart;
+		RawStartTangent = InRawStartTangent;
+		RawStartRotation = InRawStartRotation;
+
+		RawEnd = InRawEnd;
+		RawEndTangent = InRawEndTangent;
+		RawEndRotation = InRawEndRotation;
+
+		MeshComponent = InMeshComponent;
+	}
 };
 
 
@@ -60,6 +124,9 @@ private:
 	TObjectPtr<USplineComponent> Spline = nullptr;
 
 	UPROPERTY(Category = "GothGirl|Config", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool SnappingOn{ true };
+
+	UPROPERTY(Category = "GothGirl|Config", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ZOffset{ 0.25f };
 
 	UPROPERTY(Category = "GothGirl|Config", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -85,4 +152,5 @@ private:
 	void CreateFromCache();
 
 	int LastPointCount{ 0 };
+	FTransform LastParentTransform{ FTransform::Identity };
 };

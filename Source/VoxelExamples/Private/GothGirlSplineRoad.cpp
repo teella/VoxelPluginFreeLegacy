@@ -102,7 +102,7 @@ void AGothGirlSplineRoad::RefreshEditor(bool ForceRefresh)
 	if (ForceRefresh || LastEditorTime < FPlatformTime::Seconds())
 	{
 		//LOG_VOXEL(Log, TEXT("AGothGirlSplineRoad::RefreshEditor %f"), LastEditorTime);
-		LastEditorTime = FPlatformTime::Seconds() + 0.5f;
+		LastEditorTime = FPlatformTime::Seconds() + 0.3f;
 		MakeSplineMesh();
 	}
 }
@@ -113,7 +113,14 @@ void AGothGirlSplineRoad::CreateFromCache()
 	int Max = SplinePoints.Num();
 	for (int i = 0; i < Max; i++)
 	{
-		if (USplineMeshComponent* SMC = Cast<USplineMeshComponent>(AddComponentByClass(USplineMeshComponent::StaticClass(), true, FTransform::Identity, false)))
+		USplineMeshComponent* SMC = nullptr;
+
+		if (SplinePoints.IsValidIndex(i) && IsValid(SplinePoints[i].MeshComponent))
+			SMC = SplinePoints[i].MeshComponent;
+		else
+			SMC = Cast<USplineMeshComponent>(AddComponentByClass(USplineMeshComponent::StaticClass(), true, FTransform::Identity, false));
+
+		if (IsValid(SMC))
 		{
 			SMC->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			SMC->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
@@ -131,6 +138,7 @@ void AGothGirlSplineRoad::CreateFromCache()
 			SMC->SetStartAndEnd(SplinePoints[i].Start, SplinePoints[i].StartTangent, SplinePoints[i].End, SplinePoints[i].EndTangent, true);
 			SMC->SetStartRollDegrees(SplinePoints[i].StartRotation.Roll);
 			SMC->SetEndRollDegrees(SplinePoints[i].EndRotation.Roll);
+			SplinePoints[i].MeshComponent = SMC;
 		}
 	}
 }
@@ -153,7 +161,7 @@ void AGothGirlSplineRoad::BeginPlay()
 #if WITH_EDITOR
 void AGothGirlSplineRoad::TransformUpdated(USceneComponent* InRootComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
-	RefreshEditor(false);
+	RefreshEditor(true);
 }
 #endif
 
@@ -182,18 +190,31 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 {
 	if (IsValid(Mesh))
 	{
-		TArray<USceneComponent*> Comps;
-		Spline->GetChildrenComponents(true, Comps);
-		for (USceneComponent* comp : Comps)
+		if (LastPointCount != Spline->GetNumberOfSplinePoints())
 		{
-			if (USplineMeshComponent * SMC = Cast<USplineMeshComponent>(comp))
+			if (LastPointCount > Spline->GetNumberOfSplinePoints())
 			{
-				comp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-				comp->DestroyComponent();
+				for (FGothGirlRoadInfo& Info : SplinePoints)
+				{
+					if (IsValid(Info.MeshComponent))
+					{
+						Info.MeshComponent->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+						Info.MeshComponent->DestroyComponent();
+					}
+					Info.MeshComponent = nullptr;
+				}
+
+				SplinePoints.Reset();
 			}
+
+			LastPointCount = Spline->GetNumberOfSplinePoints();
+			//zero out latest spline point rotation
+			if (SnappingOn)
+				Spline->SetRotationAtSplinePoint(LastPointCount - 1, FRotator::ZeroRotator, ESplineCoordinateSpace::Local);
 		}
 
-		SplinePoints.Reset();
+		FTransform CurrentParentTransform = GetActorTransform();
+		bool TransformEqual = UKismetMathLibrary::NearlyEqual_TransformTransform(LastParentTransform, CurrentParentTransform);
 
 		FBoxSphereBounds Bounds = Mesh->GetBounds();
 		float MeshLength{ 200.0f };
@@ -207,16 +228,18 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 
 		int Max = FMath::RoundToInt((float)Spline->GetSplineLength() / MeshLength) - 1;
 
-		if (LastPointCount != Spline->GetNumberOfSplinePoints())
-		{
-			LastPointCount = Spline->GetNumberOfSplinePoints();
-			//zero out latest spline point rotation
-			Spline->SetRotationAtSplinePoint(LastPointCount - 1, FRotator::ZeroRotator, ESplineCoordinateSpace::Local);
-		}
+		//LOG_VOXEL(Log, TEXT("Max %i||%i"), Max, SplinePoints.Num());
 
 		for (int i = 0; i < Max; i++)
 		{
-			if (USplineMeshComponent* SMC = Cast<USplineMeshComponent>(AddComponentByClass(USplineMeshComponent::StaticClass(), true, FTransform::Identity, false)))
+			USplineMeshComponent* SMC = nullptr;
+
+			if (SplinePoints.IsValidIndex(i) && IsValid(SplinePoints[i].MeshComponent))
+				SMC = SplinePoints[i].MeshComponent;
+			else
+				SMC = Cast<USplineMeshComponent>(AddComponentByClass(USplineMeshComponent::StaticClass(), true, FTransform::Identity, false));
+
+			if (IsValid(SMC))
 			{
 				SMC->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 				SMC->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
@@ -236,19 +259,43 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 				FVector Start = Spline->GetLocationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World);
 				FVector End = Spline->GetLocationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World);
 				FHitResult Hit;
-				FVector TraceStart = Start + (Spline->GetUpVector() * TraceDistance);
-				FVector TraceEnd = Start + (Spline->GetUpVector() * -TraceDistance);
+				
+				FVector UpVector = Spline->GetUpVectorAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World);
 
-				FRotator StartRot = Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World);
-				FRotator EndRot = Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World);
+				FVector TraceStart = Start + (UpVector * Bounds.BoxExtent.Z);
+				FVector TraceEnd = Start + (UpVector * -TraceDistance);
+
+				FRotator StartRot = Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local);
+				FRotator EndRot = Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local);
 				FVector StartTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
 				FVector EndTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
 
-				if (DoLineTraceSingle(Hit, TraceStart, TraceEnd, ActorsToIgnore))
+				FVector RawStart = Spline->GetLocationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local);
+				FVector RawEnd = Spline->GetLocationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local);
+				FRotator RawStartRot = StartRot;
+				FRotator RawEndRot = EndRot;
+				FVector RawStartTangent = StartTangent;
+				FVector RawEndTangent = EndTangent;
+
+				if (TransformEqual && SplinePoints.IsValidIndex(i))
+				{
+					if (SplinePoints[i].RawStart == RawStart &&
+						SplinePoints[i].RawStartRotation == RawStartRot &&
+						SplinePoints[i].RawStartTangent == RawStartTangent &&
+
+						SplinePoints[i].RawEnd == RawEnd &&
+						SplinePoints[i].RawEndRotation == RawEndRot &&
+						SplinePoints[i].RawEndTangent == RawEndTangent)
+					{
+						continue;
+					}
+				}
+
+				if (SnappingOn && DoLineTraceSingle(Hit, TraceStart, TraceEnd, ActorsToIgnore))
 				{
 					if (Hit.bBlockingHit)
 					{
-						Start = Spline->GetComponentTransform().InverseTransformPosition(Hit.ImpactPoint) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * Spline->GetUpVector());
+						Start = Spline->GetComponentTransform().InverseTransformPosition(Hit.ImpactPoint) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * UpVector);
 						StartRot = FRotationMatrix::MakeFromXZ(Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World), Hit.Normal).Rotator();
 						StartRot = Spline->GetComponentTransform().InverseTransformRotation(StartRot.Quaternion()).Rotator();
 						// Recalculate the tangent in the world space and then convert to local space
@@ -259,16 +306,17 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 				}
 				else
 				{
-					Start = Spline->GetLocationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local);
+					Start = RawStart;
 				}
 
-				TraceStart = End + (Spline->GetUpVector() * TraceDistance);
-				TraceEnd = End + (Spline->GetUpVector() * -TraceDistance);
-				if (DoLineTraceSingle(Hit, TraceStart, TraceEnd, ActorsToIgnore))
+				UpVector = Spline->GetUpVectorAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World);
+				TraceStart = End + (UpVector * Bounds.BoxExtent.Z);
+				TraceEnd = End + (UpVector * -TraceDistance);
+				if (SnappingOn && DoLineTraceSingle(Hit, TraceStart, TraceEnd, ActorsToIgnore))
 				{
 					if (Hit.bBlockingHit)
 					{
-						End = Spline->GetComponentTransform().InverseTransformPosition(Hit.ImpactPoint) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * Spline->GetUpVector());
+						End = Spline->GetComponentTransform().InverseTransformPosition(Hit.ImpactPoint) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * UpVector);
 						EndRot = FRotationMatrix::MakeFromXZ(Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World), Hit.Normal).Rotator();
 						EndRot = Spline->GetComponentTransform().InverseTransformRotation(EndRot.Quaternion()).Rotator();
 						// Recalculate the tangent in the world space and then convert to local space
@@ -279,13 +327,13 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 				}
 				else
 				{
-					End = Spline->GetLocationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local);
+					End = RawEnd;
 				}
 
-				
+
 				int Index = GothGirlSplineRoad::GetClosestSplinePointIndex(Spline, StartDist);
 				FInterpCurvePointQuat rtn = GothGirlSplineRoad::GetRotationPointSafe(Spline, Index);
-				
+
 				//LOG_VOXEL(Log, TEXT("GetClosestSplinePointIndex %i [%s](%f)"), Index, *rtn.OutVal.Rotator().ToString(), rtn.InVal);
 				if (rtn.OutVal != FQuat::Identity)
 					StartRot = (StartRot.Quaternion() * Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local).Quaternion()).Rotator();
@@ -299,9 +347,43 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 				SMC->SetStartRollDegrees(StartRot.Roll);
 				SMC->SetEndRollDegrees(EndRot.Roll);
 
-				SplinePoints.Add({ Start, StartTangent, StartRot, End, EndTangent, EndRot });
+				if (SplinePoints.IsValidIndex(i))
+				{
+					SplinePoints[i].Start = Start;
+					SplinePoints[i].StartTangent = StartTangent;
+					SplinePoints[i].StartRotation = StartRot;
+
+					SplinePoints[i].End = End;
+					SplinePoints[i].EndTangent = EndTangent;
+					SplinePoints[i].EndRotation = EndRot;
+
+					SplinePoints[i].RawStart = RawStart;
+					SplinePoints[i].RawStartTangent = RawStartTangent;
+					SplinePoints[i].RawStartRotation = RawStartRot;
+
+					SplinePoints[i].RawEnd = RawEnd;
+					SplinePoints[i].RawEndTangent = RawEndTangent;
+					SplinePoints[i].RawEndRotation = RawEndRot;
+				}
+				else
+					SplinePoints.Add({ Start, StartTangent, StartRot, End, EndTangent, EndRot, RawStart, RawStartTangent, RawStartRot, RawEnd, RawEndTangent, RawEndRot, SMC });
 			}
 		}
+
+		if (Max > 0 && SplinePoints.Num() > 0 && Max < SplinePoints.Num())
+		{
+			for (int i = SplinePoints.Num() - 1; i > Max - 1; i--)
+			{
+				if (IsValid(SplinePoints[i].MeshComponent))
+				{
+					SplinePoints[i].MeshComponent->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+					SplinePoints[i].MeshComponent->DestroyComponent();
+				}
+				SplinePoints.RemoveAt(i);
+			}
+		}
+
+		LastParentTransform = CurrentParentTransform;
 	}
 }
 
