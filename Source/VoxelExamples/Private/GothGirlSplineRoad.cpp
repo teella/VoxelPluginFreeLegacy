@@ -1,3 +1,4 @@
+#include "GothGirlSplineRoad.h"
 #include "VoxelMinimal.h"
 #include "VoxelWorld.h"
 #include "VoxelIntBoxLibrary.h"
@@ -179,6 +180,8 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 
 				FRotator StartRot = Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World);
 				FRotator EndRot = Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World);
+				FVector StartTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
+				FVector EndTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
 
 				if (DoLineTraceSingle(Hit, TraceStart, TraceEnd, ActorsToIgnore))
 				{
@@ -186,6 +189,11 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 					{
 						Start = (Hit.ImpactPoint - Spline->GetComponentLocation()) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * Spline->GetUpVector());
 						StartRot = FRotationMatrix::MakeFromXZ(Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World), Hit.Normal).Rotator();
+						StartRot = Spline->GetComponentTransform().InverseTransformRotation(StartRot.Quaternion()).Rotator();
+						// Recalculate the tangent in the world space and then convert to local space
+						FVector TangentWorld = Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::World);
+						FVector TangentLocal = Spline->GetComponentTransform().InverseTransformVector(TangentWorld);
+						StartTangent = UKismetMathLibrary::ClampVectorSize(TangentLocal, 0.0f, MeshLength);
 					}
 				}
 				else
@@ -201,6 +209,11 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 					{
 						End = (Hit.ImpactPoint - Spline->GetComponentLocation()) + ((Bounds.BoxExtent * GetActorScale3D() * ZOffset).Z * Spline->GetUpVector());
 						EndRot = FRotationMatrix::MakeFromXZ(Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World), Hit.Normal).Rotator();
+						EndRot = Spline->GetComponentTransform().InverseTransformRotation(EndRot.Quaternion()).Rotator();
+						// Recalculate the tangent in the world space and then convert to local space
+						FVector TangentWorld = Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::World);
+						FVector TangentLocal = Spline->GetComponentTransform().InverseTransformVector(TangentWorld);
+						EndTangent = UKismetMathLibrary::ClampVectorSize(TangentLocal, 0.0f, MeshLength);
 					}
 				}
 				else
@@ -208,15 +221,10 @@ void AGothGirlSplineRoad::MakeSplineMesh()
 					End = Spline->GetLocationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local);
 				}
 
-				StartRot = Spline->GetComponentTransform().InverseTransformRotation(StartRot.Quaternion()).Rotator();
-				EndRot = Spline->GetComponentTransform().InverseTransformRotation(EndRot.Quaternion()).Rotator();
-
-				StartRot = (StartRot.Quaternion() * Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local).Quaternion()).Rotator();
-				EndRot = (EndRot.Quaternion() * Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local).Quaternion()).Rotator();
-
-
-				FVector StartTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
-				FVector EndTangent = UKismetMathLibrary::ClampVectorSize(Spline->GetTangentAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local), 0.0f, MeshLength);
+				if (Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local) != FRotator::ZeroRotator)
+					StartRot = (StartRot.Quaternion() * Spline->GetRotationAtDistanceAlongSpline(StartDist, ESplineCoordinateSpace::Local).Quaternion()).Rotator();
+				if (Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local) != FRotator::ZeroRotator)
+					EndRot = (EndRot.Quaternion() * Spline->GetRotationAtDistanceAlongSpline(EndDist, ESplineCoordinateSpace::Local).Quaternion()).Rotator();
 
 				SMC->SetStartAndEnd(Start, StartTangent, End, EndTangent, true);
 				SMC->SetStartRollDegrees(StartRot.Roll);
