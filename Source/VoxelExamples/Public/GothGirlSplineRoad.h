@@ -51,6 +51,8 @@ public:
 #if WITH_EDITOR
 	void RefreshEditor(bool ForceRefresh);
 	double LastEditorTime{ 0.0f };
+	void TransformUpdated(USceneComponent* InRootComponent, EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport);
+	FDelegateHandle UpdateHandle;
 #endif
 
 private:
@@ -81,4 +83,6 @@ private:
 	TArray<FGothGirlRoadInfo> SplinePoints;
 
 	void CreateFromCache();
+
+	int LastPointCount{ 0 };
 };
